@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2f3be3ddc819e62fe89c5bdc0dbc14b6ac7c0aa1b6503473a404e79bcbb48e98
+-- hash: 4f2d1302c34d3b0580e778a8cdc792498dcf2d9088028cdca267fd2e9f249033
 
 name:           cis194
 version:        0.1.0.0
