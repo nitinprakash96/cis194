@@ -3,32 +3,57 @@
 module Week1.LogAnalysis where
 
 import Week2.Log
+import Text.Read
+import Data.Maybe
+
 
 {-
- Exercise 1 The first step is figuring out how to parse an individual message.
- Define a function
-    parseMessage :: String -> LogMessage
- which parses an individual line from the log file.
+ Exercise 1 The first step is figuring out how to parse an individual
+ message.
 
+ Define a function
+   parseMessage :: String -> LogMessage
+ which parses an individual line from the log file.
  For example,
    parseMessage "E 2 562 help help" == LogMessage (Error 2) 562 "help help"
+   parseMessage "I 29 la la la" == LogMessage Info 29 "la la la"
+   parseMessage "This is not in the right format" == Unknown "This is not in the right format"
+
+ Once we can parse one log message, we can parse a whole log file.
+ Define a function
+   parse :: String -> [LogMessage]
+ which parses an entire log file at once and returns its contents as a
+ list of LogMessages.
+
+ To test your function, use the testParse function provided in the
+ Log module, giving it as arguments your parse function, the number
+ of lines to parse, and the log file to parse from (which should also be
+ in the same folder as your assignment). For example, after loading
+ your assignment into GHCi, type something like this at the prompt:
+   testParse parse 10 "error.log"
+
+ Don’t reinvent the wheel! (That’s so last week.) Use Prelude functions to make
+ your solution as concise, high-level, and functional as
+ possible. For example, to convert a String like "562" into an Int, you
+ can use the read function. Other functions which may (or may not)
+ be useful to you include lines, words, unwords, take, drop, and (.).
 -}
 parseMessage :: String -> LogMessage
 parseMessage msg = case words msg of
-  ("I" : timestamp : info)         -> LogMessage Info (read timestamp) (unwords info)
-  ("W" : timestamp : info)         -> LogMessage Warning (read timestamp) (unwords info)
-  ("E" : level : timestamp : info) -> LogMessage (Error $ read level) (read timestamp) (unwords info)
+  ("I" : timestamp : info) -> case (read timestamp :: Int) > 0 of
+    True -> LogMessage Info (read timestamp) (unwords info)
+    _ -> Unknown msg
+  ("W" : timestamp : info) -> case (read timestamp :: Int) > 0 of
+    True -> LogMessage Warning (read timestamp) (unwords info)
+    _ -> Unknown msg
+  ("E" : level : timestamp : info) -> case (read level :: Int) > 0
+                                           && (read timestamp :: Int) < 101 of
+    True -> LogMessage (Error $ read level) (read timestamp) (unwords info)
+    _ -> Unknown msg
   info -> Unknown (unwords info)
 
 
-{-
- Exercise 2: Now that the above function can parse a single line. Next function should
- parse the whole Log file
-
- Define a function
-   parse :: String -> [LogMessage]
- which parses an entire log file at once and returns its contents as a list of LogMessages
--}
+-- Parse an entire log file at once and return its contents as a list of LogMessages
 parse :: String -> [LogMessage]
 parse = map (parseMessage) . lines
 
@@ -43,7 +68,9 @@ parse = map (parseMessage) . lines
  Insert may assume that it is given a sorted MessageTree, and must produce a new sorted
  MessageTree containing the new LogMessage in addition to the contents of the
  original MessageTree.
- However, note that if insert is given a LogMessage which is Unknown, it should return the MessageTree unchanged.
+
+ However, note that if insert is given a LogMessage which is Unknown, it should
+ return the MessageTree unchanged.
 -}
 insert :: LogMessage -> MessageTree -> MessageTree
 insert x Leaf = Node Leaf x Leaf
@@ -60,7 +87,7 @@ insert msg1@(LogMessage _ t1 _ ) tree@(Node left msg2@(LogMessage _ t2 _) right)
  we can build a complete MessageTree from a list of messages. Specifically, define a function
     build :: [LogMessage] -> MessageTree
 
-which builds up a MessageTree containing the messages in the list,
+ which builds up a MessageTree containing the messages in the list,
  by successively
 -}
 build :: [LogMessage] -> MessageTree
@@ -126,7 +153,7 @@ inOrder (Node left msg right) = inOrder left ++ [msg] ++ inOrder right
  function, and the name of the log file to parse.
 -}
 whatWentWrong :: [LogMessage] -> [String]
-whatWentWrong msgs = map getMsg $ filter important $ (inOrder . build) msgs
+whatWentWrong msgs = mapMaybe (readMaybe getMsg) $ filter important $ (inOrder . build) msgs
     where important (LogMessage (Error s) _ _) = s >= 50
           important _ = False
           getMsg (LogMessage _ _ msg) = msg
