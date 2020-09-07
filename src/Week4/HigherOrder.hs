@@ -179,5 +179,5 @@ seq' n = filter (<= n) [i + j + 2 * i * j | i <- [1..n], j <- [1..n], i + j + 2 
 -- Generates all the odd primes less than 2n + 2
 -- sieveOfSundaram 10 == [3,5,7,11,13,17,19]
 sieveOfSundaram :: Integer -> [Integer]
-sieveOfSundaram n = let sample = seq' n
-                    in [2 * x + 1 | x <- [1..n], not (x `elem` sample)]
+sieveOfSundaram n = [2 * x + 1 | x <- [1..n], not (x `elem` sample)]
+  where sample = seq' n
