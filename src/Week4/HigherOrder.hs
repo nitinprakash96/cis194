@@ -170,11 +170,12 @@ cartProd xs ys = [(x,y) | x <- xs, y <- ys]
  From this list, remove all numbers of the form i + j + 2ij where:
     i, j belongs to N, 1 <= i <= j
     i + j + 2ij <= n
+
  The remaining numbers are doubled and incremented by one, giving a list
  of the odd prime numbers (i.e., all primes except 2) below 2n + 1
 -}
 seq' :: Integer -> [Integer]
-seq' n = filter (<= n) [i + j + 2 * i * j | i <- [1..n], j <- [1..n], i + j + 2 * i * j <= n]
+seq' n = filter (<= n) [i + j + 2 * i * j | j <- [1..n], i <- [1..j], i + j + 2 * i * j <= n]
 
 -- Generates all the odd primes less than 2n + 2
 -- sieveOfSundaram 10 == [3,5,7,11,13,17,19]
