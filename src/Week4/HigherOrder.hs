@@ -136,7 +136,6 @@ xor' = foldl xorUtil False
  in such a way that map’ behaves identically to the standard map function.
 -}
 map' :: (a -> b) -> [a] -> [b]
--- Apply f to each element of the list and 
 map' f = foldr (\x gs -> (f x) : gs) []
 
 
@@ -164,3 +163,21 @@ map' f = foldr (\x gs -> (f x) : gs) []
 -}
 cartProd :: [a] -> [b] -> [(a, b)]
 cartProd xs ys = [(x,y) | x <- xs, y <- ys]
+
+
+{-
+ Start with a list of the integers from 1 to n.
+ From this list, remove all numbers of the form i + j + 2ij where:
+    i, j belongs to N, 1 <= i <= j
+    i + j + 2ij <= n
+ The remaining numbers are doubled and incremented by one, giving a list
+ of the odd prime numbers (i.e., all primes except 2) below 2n + 1
+-}
+seq' :: Integer -> [Integer]
+seq' n = filter (<= n) [i + j + 2 * i * j | i <- [1..n], j <- [1..n], i + j + 2 * i * j <= n]
+
+-- Generates all the odd primes less than 2n + 2
+-- sieveOfSundaram 10 == [3,5,7,11,13,17,19]
+sieveOfSundaram :: Integer -> [Integer]
+sieveOfSundaram n = let sample = seq' n
+                    in [2 * x + 1 | x <- [1..n], not (x `elem` sample)]
