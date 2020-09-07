@@ -78,3 +78,89 @@ fun2 = sum
 data Tree a = Leaf
             | Node Integer (Tree a) a (Tree a)
             deriving (Show, Eq)
+
+height :: Tree a -> Integer
+height Leaf           = -1
+height (Node h _ _ _) = h
+
+
+insertNode :: a -> Tree a -> Tree a
+insertNode x Leaf                   = Node 0 Leaf x Leaf
+insertNode x (Node h left root right)
+  | h1 < h2   = Node h (insertNode x left) root right
+  | h1 > h2   = Node h left root (insertNode x right)
+  | otherwise = Node (h3 + 1) leftInsert root right
+  where h1 = height left
+        h2 = height right
+        h3 = height leftInsert
+        leftInsert = (insertNode x left)
+
+
+foldTree :: [a] -> Tree a
+foldTree = foldr insertNode Leaf
+
+
+{-
+Exercise 3: Implement a function
+   xor :: [Bool] -> Bool
+
+ which returns True if and only if there are an odd number of True
+ values contained in the input list. It does not matter how many
+ False values the input list contains.
+
+ For example,
+   xor [False, True, False] == True
+   xor [False, True, False, False, True] == False
+
+ Your solution must be implemented using a fold.
+-}
+-- XOR: result in each position is 1 if only one of the bits is 1,
+-- but will be 0 if both are 0 or both are 1.
+xor :: [Bool] -> Bool
+xor = foldl (/=) False
+
+-- The above is also possible using pattern matching
+xor' :: [Bool] -> Bool
+xor' = foldl xorUtil False
+  where xorUtil n m
+          | n == True && m == False = True
+          | n == False && m == True = True
+          | otherwise               = False
+
+
+{-
+ Exercise 4: Implement map as a fold. That is, complete the definition
+    map’ :: (a -> b) -> [a] -> [b]
+    map’ f = foldr ...
+
+ in such a way that map’ behaves identically to the standard map function.
+-}
+map' :: (a -> b) -> [a] -> [b]
+-- Apply f to each element of the list and 
+map' f = foldr (\x gs -> (f x) : gs) []
+
+
+{-
+ Exercise 4: Finding primes
+
+ Read about the Sieve of Sundaram. Implement the algorithm using function composition.
+
+ Given an integer n, your function should
+ generate all the odd prime numbers up to 2n + 2.
+   sieveSundaram :: Integer -> [Integer]
+   sieveSundaram = ...
+
+ To give you some help, below is a function to compute the Cartesian product
+ of two lists. This is similar to zip, but it produces all
+ possible pairs instead of matching up the list elements.
+
+ For example,
+   cartProd [1,2] [’a’,’b’] == [(1,’a’),(1,’b’),(2,’a’),(2,’b’)]
+
+ It’s written using a list comprehension, which we haven’t talked about
+ in class (but feel free to research them).
+   cartProd :: [a] -> [b] -> [(a, b)]
+   cartProd xs ys = [(x,y) | x <- xs, y <- ys]
+-}
+cartProd :: [a] -> [b] -> [(a, b)]
+cartProd xs ys = [(x,y) | x <- xs, y <- ys]
