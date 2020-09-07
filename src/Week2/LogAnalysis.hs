@@ -4,7 +4,7 @@ module Week1.LogAnalysis where
 
 import Week2.Log
 import Text.Read
-
+import Data.Maybe
 
 
 {-
@@ -153,8 +153,9 @@ inOrder (Node left msg right) = inOrder left ++ [msg] ++ inOrder right
  function, and the name of the log file to parse.
 -}
 whatWentWrong :: [LogMessage] -> [String]
-whatWentWrong msgs = map getMsg $ filter important $ (inOrder . build) msgs
+whatWentWrong msgs = mapMaybe getMsg $ filter important $ (inOrder . build) msgs
     where important (LogMessage (Error s) _ _) = s >= 50
           important _ = False
-          getMsg (LogMessage _ _ msg) = msg
-          getMsg _                    = ""
+          getMsg (LogMessage _ _ msg) = Just msg
+          getMsg _                    = Nothing
+
