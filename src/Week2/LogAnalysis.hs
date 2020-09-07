@@ -4,7 +4,7 @@ module Week1.LogAnalysis where
 
 import Week2.Log
 import Text.Read
-import Data.Maybe
+
 
 
 {-
@@ -40,14 +40,14 @@ import Data.Maybe
 -}
 parseMessage :: String -> LogMessage
 parseMessage msg = case words msg of
-  ("I" : timestamp : info) -> case (read timestamp :: Int) > 0 of
+  ("I" : timestamp : info) -> case (readMaybe timestamp :: Maybe Int) > Just 0 of
     True -> LogMessage Info (read timestamp) (unwords info)
     _ -> Unknown msg
-  ("W" : timestamp : info) -> case (read timestamp :: Int) > 0 of
+  ("W" : timestamp : info) -> case (readMaybe timestamp :: Maybe Int) > Just 0 of
     True -> LogMessage Warning (read timestamp) (unwords info)
     _ -> Unknown msg
-  ("E" : level : timestamp : info) -> case (read level :: Int) > 0
-                                           && (read timestamp :: Int) < 101 of
+  ("E" : level : timestamp : info) -> case (readMaybe level :: Maybe Int) > Just 0
+                                      && (readMaybe timestamp :: Maybe Int) > Just 0 of
     True -> LogMessage (Error $ read level) (read timestamp) (unwords info)
     _ -> Unknown msg
   info -> Unknown (unwords info)
@@ -153,7 +153,7 @@ inOrder (Node left msg right) = inOrder left ++ [msg] ++ inOrder right
  function, and the name of the log file to parse.
 -}
 whatWentWrong :: [LogMessage] -> [String]
-whatWentWrong msgs = mapMaybe (readMaybe getMsg) $ filter important $ (inOrder . build) msgs
+whatWentWrong msgs = map getMsg $ filter important $ (inOrder . build) msgs
     where important (LogMessage (Error s) _ _) = s >= 50
           important _ = False
           getMsg (LogMessage _ _ msg) = msg
