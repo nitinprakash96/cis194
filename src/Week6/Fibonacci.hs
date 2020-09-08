@@ -43,6 +43,11 @@ fibs1 :: [Integer]
 fibs1 = map fib [0..]
 
 
+-- Another way to write this using list comprehension
+fibs1' :: [Integer]
+fibs1' = [fib i | i <- [0..]]
+
+
 {-
  Exercise 2:
 
@@ -55,4 +60,76 @@ fibs1 = map fib [0..]
  elements of fibs2 requires only O(n) addition operations. Be sure to
  use standard recursion pattern(s) from the Prelude as appropriate.
 -}
--- fibs2 :: [Integer]
+fibs2 :: [Integer]
+fibs2 = 0 : 1 : fib2 0 1
+  where
+    fib2 a b = (a + b) : fib2 b (a + b)
+
+
+-- We can also rewrite it using list comprehension
+fibs2' :: [Integer]
+fibs2' = 0 : 1 : [fibs2' !! (i - 2) + fibs2' !! (i - 1) | i <- [2..]]
+
+
+{-
+ PREFACE:
+
+ Streams:
+ We can be more explicit about infinite lists by defining a type Stream
+ representing lists that must be infinite. (The usual list type represents
+ lists that may be infinite but may also have some finite length.)
+ In particular, streams are like lists but with only a “cons” constructor—
+ whereas the list type has two constructors, [] (the empty list) and
+ (:) (cons), there is no such thing as an empty stream. So a stream is
+ simply defined as an element followed by a stream.
+-}
+
+{-
+ Exercise 3:
+
+ • Define a data type of polymorphic streams, Stream.
+
+ • Write a function to convert a Stream to an infinite list,
+     streamToList :: Stream a -> [a]
+
+ • To test your Stream functions in the succeeding exercises, it will be
+ useful to have an instance of Show for Streams. However, if you put deriving
+ Show after your definition of Stream, as one usually does, the resulting
+ instance will try to print an entire Stream—which, of course, will never
+ finish. Instead, you should make your own instance of Show for Stream,
+
+    instance Show a => Show (Stream a) where show ...
+
+ which works by showing only some prefix of a stream (say, the first 20 elements).
+-}
+data Stream a = Cons a (Stream a)
+
+
+streamToList :: Stream a -> [a]
+streamToList (Cons x xs) = x : streamToList xs
+
+
+instance Show a => Show (Stream a) where
+  show = show . take 20 . streamToList
+
+
+{-
+ Exercise 4:
+
+ Let’s create some simple tools for working with Streams.
+
+ • Write a function
+    streamRepeat :: a -> Stream a
+ which generates a stream containing infinitely many copies of the given element.
+
+ • Write a function
+    streamMap :: (a -> b) -> Stream a -> Stream b
+ which applies a function to every element of a Stream.
+
+ • Write a function
+    streamFromSeed :: (a -> a) -> a -> Stream a
+ which generates a Stream from a “seed” of type a, which is the first element of
+ the stream, and an “unfolding rule” of type a -> a
+ which specifies how to transform the seed into a new seed, to be used for
+ generating the rest of the stream.
+-}
