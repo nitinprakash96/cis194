@@ -133,3 +133,9 @@ instance Show a => Show (Stream a) where
  which specifies how to transform the seed into a new seed, to be used for
  generating the rest of the stream.
 -}
+streamRepeat :: a -> Stream a
+streamRepeat x = Cons x (streamRepeat x)
+
+
+streamMap :: (a -> b) -> Stream a -> Stream b
+streamMap f (Cons x xs) = Cons (f x) (streamMap f xs)
