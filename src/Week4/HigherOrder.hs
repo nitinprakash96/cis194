@@ -117,11 +117,11 @@ Exercise 3: Implement a function
 -- XOR: result in each position is 1 if only one of the bits is 1,
 -- but will be 0 if both are 0 or both are 1.
 xor :: [Bool] -> Bool
-xor = foldl (/=) False
+xor = foldr (/=) False
 
 -- The above is also possible using pattern matching
 xor' :: [Bool] -> Bool
-xor' = foldl xorUtil False
+xor' = foldr xorUtil False
   where xorUtil n m
           | n == True && m == False = True
           | n == False && m == True = True
@@ -161,9 +161,6 @@ map' f = foldr (\x gs -> (f x) : gs) []
    cartProd :: [a] -> [b] -> [(a, b)]
    cartProd xs ys = [(x,y) | x <- xs, y <- ys]
 -}
-cartProd :: [a] -> [b] -> [(a, b)]
-cartProd xs ys = [(x,y) | x <- xs, y <- ys]
-
 
 {-
  Start with a list of the integers from 1 to n.
