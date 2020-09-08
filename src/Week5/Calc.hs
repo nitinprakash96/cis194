@@ -1,7 +1,12 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+
+
 module Week5.Calc where
 
 import Week5.ExprT
 import Week5.Parser
+import qualified Week5.StackVM as SVM
 import Data.Maybe
 
 {-
@@ -180,6 +185,13 @@ instance Expr ExprT where
 
  • Mod7 — all values should be in the ranage 0 . . . 6, and all arithmetic is
           done modulo 7; for example, 5 + 3 = 1.
+
+ The last two variants work with Integers internally, but in order
+ to provide different instances, we wrap those Integers in newtype
+ wrappers. These are used just like the data constructors we’ve seen before.
+
+   newtype MinMax = MinMax Integer deriving (Eq, Show)
+   newtype Mod7 = Mod7 Integer deriving (Eq, Show)
 -}
 instance Expr Integer where
   lit = id
@@ -191,3 +203,106 @@ instance Expr Bool where
   lit = (0 <)
   add = (||)
   mul = (&&)
+
+
+newtype MinMax = MinMax Integer deriving (Show, Eq)
+
+
+instance Expr MinMax where
+  lit n                     = MinMax n
+  add (MinMax x) (MinMax y) = MinMax $ max x y
+  mul (MinMax x) (MinMax y) = MinMax $ min x y
+
+
+newtype Mod7 = Mod7 Integer deriving (Show, Eq)
+
+
+instance Expr Mod7 where
+  lit n                 = Mod7 $ n `mod` 7
+  add (Mod7 x) (Mod7 y) = Mod7 $ (x + y) `mod` 7
+  mul (Mod7 x) (Mod7 y) = Mod7 $ (x * y) `mod` 7
+
+
+{-
+ Once done, the following code should demonstrate our family of calculators:
+
+ testExp :: Expr a => Maybe a
+ testExp = parseExp lit add mul "(3 * -4) + 5"
+ testInteger = testExp :: Maybe Integer
+ testBool = testExp :: Maybe Bool
+ testMM = testExp :: Maybe MinMax
+ testSat = testExp :: Maybe Mod7
+
+ Try printing out each of those tests in ghci to see if things are
+ working. It’s great how easy it is for us to swap in new semantics for
+ the same syntactic expression!
+-}
+testExp :: Expr a => Maybe a
+testExp = parseExp lit add mul "(3 * -4) + 5"
+
+testInteger = testExp :: Maybe Integer -- Just (-7)
+testBool = testExp :: Maybe Bool       -- Just True
+testMM = testExp :: Maybe MinMax       -- Just (MinMax 7)
+testSat = testExp :: Maybe Mod7        -- Just (Mod7 0)
+
+
+{-
+ Exercise 5:
+
+ The folks down in hardware have finished our new custom CPU,
+ so we’d like to target that from now on. The catch is that a stackbased
+ architecture was chosen to save money. You need to write a version of your
+ calculator that will emit assembly language for the new processor.
+
+ The hardware group has provided you with StackVM.hs, which is a software
+ simulation of the custom CPU. The CPU supports six operations, as embodied
+ in the StackExp data type:
+    data StackExp = PushI Integer
+                  | PushB Bool
+                  | Add
+                  | Mul
+                  | And
+                  | Or
+      deriving Show
+
+    type Program = [StackExp]
+
+ PushI and PushB push values onto the top of the stack, which can
+ store both Integer and Bool values. Add, Mul, And, and Or each pop
+ the top two items off the top of the stack, perform the appropriate
+ operation, and push the result back onto the top of the stack. For example,
+ executing the program:
+    [PushB True, PushI 3, PushI 6, Mul]
+ will result in a stack holding True on the bottom, and 18 on top of that.
+ If there are not enough operands on top of the stack, or if an operation is performed
+ on operands of the wrong type, the processor will melt into a puddle of silicon goo.
+
+ For a more precise specification of the capabilities and behavior of the custom CPU,
+ consult the reference implementation provided in StackVM.hs.
+
+ Your task is to implement a compiler for arithmetic expressions. Simply create
+ an instance of the Expr type class for Program, so that arithmetic expressions
+ can be interpreted as compiled programs. For any arithmetic expression
+     exp :: Expr a => a
+ it should be the case that
+     stackVM exp == Right [IVal exp]
+
+ Note that in order to make an instance for Program (which is a type synonym)
+ you will need to enable the TypeSynonymInstances language extension, which you
+ can do by adding
+   {-# LANGUAGE TypeSynonymInstances #-}
+ as the first line in your file. Finally, put together the pieces you have to
+ create a function
+   compile :: String -> Maybe Program
+ which takes Strings representing arithmetic expressions and compiles them into
+ programs that can be run on the custom CPU.
+-}
+instance Expr SVM.Program where
+  lit n = [SVM.PushI n]
+  add x y = x ++ y ++ [SVM.Add]
+  mul x y = x ++ y ++ [SVM.Mul]
+
+-- compile "(3 * -4) + 5"
+-- Just [PushI 3,PushI (-4),Mul,PushI 5,Add]
+compile :: String -> Maybe SVM.Program
+compile = parseExp lit add mul
