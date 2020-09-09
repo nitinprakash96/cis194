@@ -109,6 +109,12 @@ streamToList :: Stream a -> [a]
 streamToList (Cons x xs) = x : streamToList xs
 
 
+streamFromList :: [a] -> Stream a
+streamFromList xs =
+  case cycle xs of
+  (x:xs') -> Cons x (streamFromList xs')
+
+
 instance Show a => Show (Stream a) where
   show = show . take 20 . streamToList
 
@@ -139,3 +145,7 @@ streamRepeat x = Cons x (streamRepeat x)
 
 streamMap :: (a -> b) -> Stream a -> Stream b
 streamMap f (Cons x xs) = Cons (f x) (streamMap f xs)
+
+
+streamFromSeed :: (a -> a) -> a -> Stream a
+streamFromSeed f x = Cons x $streamFromSeed f (f x)
