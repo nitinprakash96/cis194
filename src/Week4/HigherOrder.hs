@@ -25,7 +25,7 @@ module Week4.HigherOrder where
  what they do
 -}
 fun1 :: [Integer] -> Integer
-fun1 = product . map (+(-2)) . filter even
+fun1 = product . map (subtract 2) . filter even
 
 
 fun2 :: Integer -> Integer
@@ -172,7 +172,7 @@ map' f = foldr (\x gs -> (f x) : gs) []
  of the odd prime numbers (i.e., all primes except 2) below 2n + 1
 -}
 seq' :: Integer -> [Integer]
-seq' n = filter (<= n) [i + j + 2 * i * j | j <- [1..n], i <- [1..j], i + j + 2 * i * j <= n]
+seq' n = [i + j + 2 * i * j | j <- [1..n], i <- [1..j], i + j + 2 * i * j <= n]
 
 -- Generates all the odd primes less than 2n + 2
 -- sieveOfSundaram 10 == [3,5,7,11,13,17,19]
