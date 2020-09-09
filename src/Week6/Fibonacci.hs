@@ -149,3 +149,46 @@ streamMap f (Cons x xs) = Cons (f x) (streamMap f xs)
 
 streamFromSeed :: (a -> a) -> a -> Stream a
 streamFromSeed f x = Cons x $streamFromSeed f (f x)
+
+
+{-
+ Exercise 5:
+
+ Now that we have some tools for working with streams, let’s create a few:
+ • Define the stream
+    nats :: Stream Integer
+ which contains the infinite list of natural numbers 0, 1, 2, . . .
+
+ • Define the stream
+    ruler :: Stream Integer
+ which corresponds to the ruler function
+    0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, . . .
+ where the nth element in the stream (assuming the first element corresponds to n = 1)
+ is the largest power of 2 which evenly divides n.
+
+ Hint:
+ define a function interleaveStreams which alternates the elements from
+ two streams. Can you use this function to implement ruler in a clever way
+ that does not have to do any divisibility testing?
+-}
+nats :: Stream Integer
+nats = streamFromSeed (+1) 0
+
+
+interleaveStream :: Stream a -> Stream a -> Stream a
+interleaveStream (Cons x xs) ys = Cons x (interleaveStream ys xs)
+
+-- This is a very interesting problem.
+{-
+ Desired stream:
+    0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3...
+ which can be visualised as follows:
+    (streamOf 0 ((streamOf 1) (streamOf 2 ...)))
+ where interleave happens with every pair of streams. Therefore, it seems like
+ interleaving happens recursively at every stage.
+-}
+ruler :: Stream Integer
+ruler = recursiveInterleave streams
+    where
+        streams                         = streamMap streamRepeat nats
+        recursiveInterleave (Cons s xs) = interleaveStream s $ recursiveInterleave xs
