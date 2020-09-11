@@ -1,3 +1,6 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -fno-warn-missing-methods #-}
+
 module Week6.Fibonacci where
 
 {-
@@ -192,3 +195,116 @@ ruler = recursiveInterleave streams
     where
         streams                         = streamMap streamRepeat nats
         recursiveInterleave (Cons s xs) = interleaveStream s $ recursiveInterleave xs
+
+
+{-
+ PREFACE: Fibonacci numbers via generating functions (extra credit)
+
+ This section is optional but very cool, so if you have time I hope you
+ will try it. We will use streams of Integers to compute the Fibonacci
+ numbers in an astounding way.
+
+ The essential idea is to work with generating functions of the form
+     a0 + a1x + a2x2 + · · · + anxn + . . .
+
+ where x is just a “formal parameter” (that is, we will never actually
+ substitute any values for x; we just use it as a placeholder) and all the
+ coefficients ai are integ
+-}
+
+
+---- EXERCISE 6 ------
+
+{-
+ First, define
+    x :: Stream Integer
+
+ by noting that x = 0 + 1x + 0x2 + 0x3 + . . .
+-}
+x :: Stream Integer
+x = Cons 0 $ Cons 1 $ streamRepeat 0
+
+
+{-
+ Define an instance of the Num type class for Stream Integer.
+ Note that you will have to add {-# LANGUAGE FlexibleInstances #-} to the top of your .hs file in order for
+ this instance to be allowed.
+
+ Here’s what should go in your Num instance:
+
+ – You should implement the fromInteger function. Note that
+     n = n + 0x + 0x2 + 0x3 + . . . .
+
+ – You should implement negate: to negate a generating function, negate all its coefficients.
+
+ – You should implement (+), which works like you would expect:
+     (a0 + a1x + a2x2 + . . .) + (b0 + b1x + b2x2 + . . .) = (a0 + b0) + (a1 + b1)x + (a2 + b2)x2 + . . .
+
+ – Multiplication is a bit trickier. Suppose A = a0 + xA0 and B = b0 + xB0 are two generating functions
+   we wish to multiply.
+ We reason as follows:
+   AB = (a0 + xA0)B
+      = a0B + xA0B
+      = a0(b0 + xB0) + xA0B
+      = a0b0 + x(a0B0 + A0B)
+
+ That is, the first element of the product AB is the product of the first elements, a0b0; the remainder
+ of the coefficient stream (the part after the x) is formed by multiplying every element in B 0
+ (that is, the tail of B) by a0, and to
+
+ Note that there are a few methods of the Num class I have not told you to implement, such as abs
+ and signum. ghc will complain that you haven’t defined them, but don’t worry about it. We won’t
+ need those methods. (To turn off these warnings you can add {-# OPTIONS_GHC -fno-warn-missing-methods #-}
+ to the top of your file.) If you have implemented the above correctly, you should be able
+ to evaluate things at the ghci prompt such as
+     *Main> x^4
+     *Main> (1 + x)^5
+     *Main> (x^2 + x + 3) * (x - 5)
+-}
+instance Num (Stream Integer) where
+  fromInteger i                 = Cons i $ streamRepeat 0
+  negate (Cons v s)             = Cons (-v) $ negate s
+  (+) (Cons v1 s1) (Cons v2 s2) = Cons (v1 + v2) (s1 + s2)
+  (*) (Cons v1 s1) (Cons v2 s2) = Cons (v1 * v2) $ streamMap (* v1) s2 + s1 * Cons v2 s2
+
+
+{-
+ The penultimate step is to implement an instance of the Fractional
+ class for Stream Integer. Here the important method to define is division, (/).
+ I won’t bother deriving it (though it isn’t hard), but it turns out that if A = a0 + xA0 and
+ B = b0 + xB0, then A/B = Q, where Q is defined as
+     Q = (a0/b0) + x((1/b0)(A0 − QB0)).
+
+ That is, the first element of the result is a0/b0; the remainder is formed by computing A0 − QB0
+ and dividing each of its elements by b0.
+ Of course, in general, this operation might not result in a stream of Integers. However, we will
+ only be using this instance in cases
+-}
+instance Fractional (Stream Integer) where
+  (/) (Cons v1 s1) (Cons v2 s2) = quo
+    where
+      first     = v1 `div` v2
+      divider   = \i -> i `div` v2
+      remainder = s1 - quo * s2
+      quo       = Cons first $ streamMap divider remainder
+
+
+{-
+ Consider representing the Fibonacci numbers using a generating function,
+    F(x) = F0 + F1x + F2x2 + F3x3 + . . .
+
+ Notice that x + xF(x) + x2F(x) = F(x):
+               x
+               F0x + F1x2 + F2x3 + F3x4 + . . .
+                     F0x2 + F1x3 + F2x4 + . . .
+        ----------------------------------------
+       0 + x + F2x2 + F3x3 + F4x4 + . . .
+
+ Thus x = F(x) − xF(x) − x2F(x), and solving for F(x) we find that
+          F(x) = x / (1 − x − x2).
+
+ Translate this into an (amazing, totally sweet) definition
+      fibs3 :: Stream Integer
+-}
+fibs3 :: Stream Integer
+fibs3 = x / (1 - x - x^2)
