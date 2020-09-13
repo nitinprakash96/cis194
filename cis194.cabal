@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2f3be3ddc819e62fe89c5bdc0dbc14b6ac7c0aa1b6503473a404e79bcbb48e98
+-- hash: 591123cfe9ac5015f34466d5953ce38faa0ccbe0081c1b95b7fed707faaef4aa
 
 name:           cis194
 version:        0.1.0.0
@@ -28,12 +28,18 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Week7.Buffer
+      Week7.Editor
+      Week7.Sized
+      Week7.StringBufEditor
+      Week7.StringBuffer
   other-modules:
       Paths_cis194
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , mtl
   default-language: Haskell2010
 
 executable cis194-exe
@@ -46,6 +52,7 @@ executable cis194-exe
   build-depends:
       base >=4.7 && <5
     , cis194
+    , mtl
   default-language: Haskell2010
 
 test-suite cis194-test
@@ -59,4 +66,5 @@ test-suite cis194-test
   build-depends:
       base >=4.7 && <5
     , cis194
+    , mtl
   default-language: Haskell2010
