@@ -75,17 +75,17 @@ localMaxima _ = []
  Your output must exactly match the output shown in the examples below.
 
  histogram [1,1,1,5] ==
- *
- *
- * *
+  *
+  *
+  *   *
  ==========
  0123456789
  histogram [1,4,5,4,6,6,3,4,2,4,9] ==
 
- *
- *
- * *
- ****** *
+     *
+     *
+     * *
+ ***** *  *
  ==========
  0123456789
 
@@ -98,3 +98,36 @@ localMaxima _ = []
  the histogram as in the examples above, use putStr, for example,
  putStr (histogram [3,5]).
 -}
+histogram :: [Integer] -> String
+histogram xs = unlines $ reverse (rows xs) ++ ["==========\n0123456789"]
+  where
+    -- Builds the rows of the histogram as a list of ordered strings. First
+    -- the row 1, then the row 2, etc.
+    rows :: [Integer] -> [String]
+    rows xs' = map (buildRow (calcFrequency xs')) [1..9]
+
+
+-- For every number from 0 to 9 (inclusive), we calculate
+-- its occurences in the input list and put it into an ordered list.
+calcFrequency :: [Integer] -> [Integer]
+calcFrequency xs = map (countElement xs) [0..9]
+  where
+    countElement :: [Integer] -> Integer -> Integer
+    countElement xs' n = toInteger $ length (filter (==n) xs')
+
+
+-- Builds a string that represents an histogram row (for the integers
+-- 0..9) for the given y coordinate, using the frequencies of every said
+-- number.
+-- A particular number, in the given histogram row,
+-- should be represented with the '*' character if the number of
+-- times it's present in the list is equal or greater than the row
+-- we're at. This is like representing a y-coordinate.
+-- Otherwhise, it should be represented by the ' ' character.
+buildRow :: [Integer] -> Integer -> String
+buildRow frqs y = map (histogramElement y) frqs
+  where
+    histogramElement :: Integer -> Integer -> Char
+    histogramElement level occurences
+      | occurences >= level = '*'
+      | otherwise           = ' '
