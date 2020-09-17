@@ -193,7 +193,10 @@ interleaveStream (Cons x xs) ys = Cons x $ interleaveStream ys xs
 ruler :: Stream Integer
 ruler = recursiveInterleave streams
     where
+        streams :: Stream (Stream Integer)
         streams                         = streamMap streamRepeat nats
+
+        recursiveInterleave :: Stream (Stream Integer) -> Stream Integer
         recursiveInterleave (Cons s xs) = interleaveStream s $ recursiveInterleave xs
 
 
