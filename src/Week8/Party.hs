@@ -164,3 +164,22 @@ maxFun :: Tree Employee -> GuestList
 maxFun t = moreFun l r
   where
     (l, r) = foldTree nextLevel t
+
+
+---- Exercise 5 ------
+{-
+ Implement main :: IO () so that it reads your company’s hierarchy from the file
+ company.txt, and then prints out a formatted guest
+ list, sorted by first name, which looks like
+    Total fun: 23924
+    Adam Debergues
+    Adeline Anselme
+-}
+formatGuestList :: GuestList -> String
+formatGuestList (GL lst fun) = "Total fun: " ++ show fun ++ "\n" ++ unlines (empName <$> lst)
+
+main :: IO ()
+main = do
+  readFile "src/Week8/company.txt" >>= computeGuestList >>= putStr
+    where
+      computeGuestList = return . formatGuestList . maxFun . read
