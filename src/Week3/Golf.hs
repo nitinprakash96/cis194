@@ -28,10 +28,17 @@ takeNth :: [a] -> Int -> [a]
 -- using filter and cycle.
 takeNth xs n = [xs !! i | i <- [n - 1, n - 1 + n..length xs - 1]]
 
+takeNth' :: [a] -> Int -> [a]
+takeNth' xs n = case (drop $ n - 1) xs of
+                  []     -> []
+                  x : xs' -> x : takeNth' xs' n
 
 skips :: [a] -> [[a]]
 skips [] = []
 skips xs = map (takeNth xs) [1..(length xs)]
+
+skips' :: [a] -> [[a]]
+skips' xs = takeNth' xs <$> [1..(length xs)]
 
 
 {-
@@ -55,7 +62,7 @@ skips xs = map (takeNth xs) [1..(length xs)]
 localMaxima :: [Integer] -> [Integer]
 -- we can recursively call localMaxima on r:xs if a maxima is found, as r can never be
 -- a maxima if q is a maxima.
-localMaxima (p:q:r:xs)
+localMaxima (p : q : r : xs)
   | p < q && q > r = q : localMaxima (r:xs)
   | otherwise      = localMaxima (q:r:xs)
 localMaxima _ = []
@@ -104,7 +111,7 @@ histogram xs = unlines $ reverse (rows xs) ++ ["==========\n0123456789"]
     -- Builds the rows of the histogram as a list of ordered strings. First
     -- the row 1, then the row 2, etc.
     rows :: [Integer] -> [String]
-    rows xs' = map (buildRow (calcFrequency xs')) [1..9]
+    rows xs' = map (buildRow $ calcFrequency xs') [1..9]
 
 
 -- For every number from 0 to 9 (inclusive), we calculate
@@ -113,7 +120,7 @@ calcFrequency :: [Integer] -> [Integer]
 calcFrequency xs = map (countElement xs) [0..9]
   where
     countElement :: [Integer] -> Integer -> Integer
-    countElement xs' n = toInteger $ length (filter (==n) xs')
+    countElement xs' n = toInteger $ length $ filter (==n) xs'
 
 
 -- Builds a string that represents an histogram row (for the integers
