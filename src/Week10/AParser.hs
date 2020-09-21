@@ -36,3 +36,4 @@ first f (a, b) = (f a, b)
 
 instance Functor Parser where
   fmap g (Parser f) = Parser $ fmap (first g) . f
+
