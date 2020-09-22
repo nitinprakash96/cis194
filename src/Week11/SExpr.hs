@@ -52,4 +52,11 @@ data SExpr = A Atom
 
 
 parseSExpr :: Parser SExpr
-parseSExpr = undefined
+parseSExpr = atomExpr <|> combExpr
+
+
+atomExpr :: Parser SExpr
+atomExpr =  A <$> (N <$> posInt <|> I <$> ident)
+
+combExpr :: Parser SExpr
+combExpr = char '(' *> (Comb <$> oneOrMore parseSExpr) <* char ')'
