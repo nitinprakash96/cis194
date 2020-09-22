@@ -54,7 +54,6 @@ instance Semigroup GuestList where
 
 instance Monoid GuestList where
   mempty  = GL [] 0
-  mappend (GL emps1 fun1) (GL emps2 fun2) = GL (emps1 ++ emps2) (fun1 + fun2)
 
 
 {-
@@ -180,6 +179,8 @@ formatGuestList (GL lst fun) = "Total fun: " ++ show fun ++ "\n" ++ unlines (emp
 
 main :: IO ()
 main = do
-  readFile "src/Week8/company.txt" >>= computeGuestList >>= putStr
+  input <- readFile "src/Week8/company.txt"
+  let guestList = computeGuestList input
+  putStr guestList
     where
-      computeGuestList = return . formatGuestList . maxFun . read
+      computeGuestList = formatGuestList . maxFun . read
