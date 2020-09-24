@@ -58,7 +58,9 @@ bodyCount vic (Battlefield x y) =
 
 ---- Exercise 3 -----
 invade :: Battlefield -> Rand StdGen Battlefield
-invade = undefined
+invade b@(Battlefield a d)
+  | a < 2 || d <= 0 = return b
+  | otherwise = battle b >>= invade
 
 
 ---- Exercise 4 ----
