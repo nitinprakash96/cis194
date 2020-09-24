@@ -19,12 +19,12 @@ instance Functor Nope where
   fmap _ NopeDotJpg = NopeDotJpg
 
 instance Applicative Nope where
-  pure _  = NopeDotJpg
-  _ <*> _ = NopeDotJpg
+  pure _    = NopeDotJpg
+  (<*>) _ _ = NopeDotJpg
 
 instance Monad Nope where
-  return _ = NopeDotJpg
-  _ >>= _  = NopeDotJpg
+  return _   = NopeDotJpg
+  ( >>=) _ _ = NopeDotJpg
 
 instance Arbitrary a => Arbitrary (Nope a) where
   arbitrary = return NopeDotJpg
