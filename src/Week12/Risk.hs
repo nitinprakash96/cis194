@@ -26,10 +26,25 @@ die = getRandom
 
 type Army = Int
 
-data Battlefield = Battlefield { attackers :: Army, defenders :: Army }
+data Battlefield = Battlefield { attackers :: Army, defenders :: Army } deriving Show
 
 
----- Exercise 2 -----
+{-
+ Exercise 2:
+
+ Given the definitions
+   type Army = Int
+   data Battlefield = Battlefield { attackers :: Army, defenders :: Army }
+
+ (which are also included in Risk.hs), write a function with the type
+   battle :: Battlefield -> Rand StdGen Battlefield
+
+ which simulates a single battle (as explained above) between two
+ opposing armies. That is, it should simulate randomly rolling the
+ appropriate number of dice, interpreting the results, and updating
+ the two armies to reflect casualties. You may assume that each player
+ will attack or defend with the maximum number of units they are allowed
+-}
 battle :: Battlefield -> Rand StdGen Battlefield
 battle battlefield = do
   x <- rollDie attackers
@@ -56,18 +71,52 @@ bodyCount vic (Battlefield x y) =
   else Battlefield (x - 1) y
 
 
----- Exercise 3 -----
+{-
+ Exercise 3:
+
+ Of course, usually an attacker does not stop after just a single
+ battle, but attacks repeatedly in an attempt to destroy the entire defending
+ army (and thus take over its territory).
+
+ Now implement a function
+    invade :: Battlefield -> Rand StdGen Battlefield
+
+ which simulates an entire invasion attempt, that is, repeated calls
+ to battle until there are no defenders remaining, or fewer than two
+ attackers.
+-}
 invade :: Battlefield -> Rand StdGen Battlefield
 invade b@(Battlefield a d)
   | a < 2 || d <= 0 = return b
-  | otherwise = battle b >>= invade
+  | otherwise       = battle b >>= invade
 
 
----- Exercise 4 ----
+{-
+ Exercise 4
+
+ Finally, implement a function
+    successProb :: Battlefield -> Rand StdGen Double
+ which runs invade 1000 times, and uses the results to compute a
+ Double between 0 and 1 representing the estimated probability that
+ the attacking army will completely destroy the defending army.
+
+ For example, if the defending army is destroyed in 300 of the 1000
+ simulations (but the attacking army is reduced to 1 unit in the other 700),
+ successProb should return 0.3
+-}
 successProb :: Battlefield -> Rand StdGen Double
-successProb = undefined
+successProb x = do
+  invaded <- replicateM 1000 (invade x)
+  let invasionSuccess = length $ filter id $ isVictory <$> invaded
+  return $ fromIntegral invasionSuccess / 1000
+  where
+    isVictory :: Battlefield -> Bool
+    isVictory (Battlefield a d) = a > d
 
 
----- Exercise 5 ----
-exactSuccessProb :: Battlefield -> Double
-exactSuccessProb = undefined
+main :: IO ()
+main = do
+  let battlefield = Battlefield 9 9
+  print =<< evalRandIO (battle battlefield)
+  print =<< evalRandIO (invade battlefield)
+  print =<< evalRandIO (successProb battlefield)
