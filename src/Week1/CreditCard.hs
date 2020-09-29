@@ -67,11 +67,19 @@ doubleEverOther = reverse . zipWith (*) (cycle [1, 2]) . reverse
 
 -- An implementation of doubleEverOther using pattern matching
 doubleEverOtherUtil' :: [Integer] -> [Integer]
-doubleEverOtherUtil' [] = []
-doubleEverOtherUtil' (x : []) = [x]
--- Multiply every second element of the deconstructed pair and call doubleEverOther'
--- recursively on the remaining list
-doubleEverOtherUtil' (x:y:xs) = x : (2 * y) : doubleEverOtherUtil' xs
+doubleEverOtherUtil' xs = case even $ length xs of
+  True -> doubleEvenList xs
+    where
+      doubleEvenList [] = []
+      -- This is done in order to double the first element of an even numbered list
+      -- when there are only 2 elements (base case)
+      doubleEvenList (x : []) = [2 * x]
+      doubleEvenList (x : y : xs') = 2 * x : y : doubleEvenList xs'
+  False -> doubleOddList xs
+    where
+      doubleOddList [] = []
+      doubleOddList (x : []) = [x]
+      doubleOddList (x : y : xs') = x : 2 * y : doubleOddList xs'
 
 
 doubleEverOther' :: [Integer] -> [Integer]
